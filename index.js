@@ -1,28 +1,10 @@
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
+const app = require('./app') // the actual Express application
+const http = require('http')
+const config = require('./utils/config')
+const logger = require('./utils/logger')
 
-app.use(bodyParser.json());
+const server = http.createServer(app)
 
-app.post('/api/:endpoint', (req, res) => {
-  // Store incoming request data
-  console.log(req.body);
-
-  res.send('ok');
-});
-
-app.get('/api/:endpoint', (req, res) => {
-  // Retrieve request data from mongo
-  
-
-  res.send();
-});
-
-app.get('/', (req, res) => {
-
-  res.send('Hello, world');
-});
-
-app.listen(3000, () => {
-  console.log('Server listening on port 3000!');
-});
+server.listen(config.PORT, () => {
+  logger.info(`Server running on port ${config.PORT}`)
+})
