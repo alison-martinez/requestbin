@@ -2,10 +2,10 @@ const requestsRouter = require('express').Router()
 const Request = require('../models/request') // model for MongoDB
 const bodyParser = require('body-parser');
 
-const { PostgresClient } = require('pg');
+const { Client } = require('pg');
 
 // need connection info for pg (below)
-const pgClient = new PostgresClient({
+const pgClient = new Client({
   host: process.env.PG_HOST,
   port: process.env.PG_PORT,
   user: process.env.PG_USER,
