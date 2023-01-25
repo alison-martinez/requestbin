@@ -13,7 +13,6 @@ const requestSchema = new mongoose.Schema({
   },
   headers: String,
   body: String,
-  raw_request: String,
 })
 
 requestSchema.set('toJSON', {

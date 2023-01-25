@@ -39,17 +39,33 @@ requestsRouter.get('/bin/1', (req, res) => {
 requestsRouter.get('/bin/1/endpoint/:endpoint', async (req, res) => {
   const currentPath = req.params.endpoint;
   const requests = await Request.find({ path: currentPath }).exec();
-  response.json(requests);
+  res.json(requests);
+  // do we need error handling?
 });
 
-requestsRouter.post('/bin/1/endpoint/:endpoint', (req, res) => {
+requestsRouter.post('/bin/1/endpoint/:endpoint', async (req, res) => {
   // Store incoming request data to Mongo for that endpoint
-  console.log(req.body);
+  const path = req.params.endpoint;
+  const header = JSON.stringify(req.headers);
+  const body = JSON.stringify(req.body);
 
-  res.send('ok');
+  const request = new Request({
+    path: path,
+    headers: header,
+    body: body,
+  });
+
+  const savedRequest = await request.save();
+
+  if (savedRequest) {
+    res.send(savedRequest);
+  } else {
+    console.log("error");
+  }
+  res.status(200).end();
 });
 
-generateUniquePath = () => {
+const generateUniquePath = () => {
   return uuidv4();
 };
 
