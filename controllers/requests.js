@@ -7,14 +7,13 @@ const { Client } = require('pg');
 
 // need connection info for pg (below)
 const pgClient = new Client({
-  host: config.PG_HOST,
-  port: config.PG_PORT,
-  user: config.PG_USER,
-  password: config.PG_PASSWORD,
+  //host: config.PG_HOST,
+  //port: config.PG_PORT,
+  //user: config.PG_USER,
+  //password: config.PG_PASSWORD,
   database: config.PG_DATABASE,
 });
 
-//Here's a little commit test
 requestsRouter.use(bodyParser.json());
 
 requestsRouter.get('/', (req, res) => {
