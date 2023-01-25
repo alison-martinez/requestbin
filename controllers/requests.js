@@ -5,7 +5,8 @@ const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 
 // const { Client } = require('pg');
-const pg = require('pg')
+const pg = require('pg');
+const { response } = require('express');
 
 // need connection info for pg (below)
 // const pgClient = new Client({
@@ -26,18 +27,19 @@ requestsRouter.get('/', (req, res) => {
 requestsRouter.get('/bin/1', (req, res) => {
   //get list of all endpoints in that bin
     // //list all endpoints from the postgres database
-    sql = "SELECT * FROM endpoints WHERE binID = 1"
+    sql = "SELECT path FROM endpoints WHERE binID = 1"
     pgClient.query(sql, (error,results) => {
       if (error) {
         res.status(404).json("Error reading endpoints from postgres")
       }
       res.status(200).json(JSON.stringify(results.rows));
     })
-
 });
 
-requestsRouter.get('/bin/1/endpoint/:endpoint', (req, res) => {
-  // Retrieve request data from mongo for ONE endpoint
+requestsRouter.get('/bin/1/endpoint/:endpoint', async (req, res) => {
+  const currentPath = req.params.endpoint;
+  const requests = await Request.find({ path: currentPath }).exec();
+  response.json(requests);
 });
 
 requestsRouter.post('/bin/1/endpoint/:endpoint', (req, res) => {
@@ -47,7 +49,6 @@ requestsRouter.post('/bin/1/endpoint/:endpoint', (req, res) => {
   res.send('ok');
 });
 
-// #fix me
 generateUniquePath = () => {
   return uuidv4();
 };
