@@ -21,20 +21,24 @@ requestsRouter.get('/', (req, res) => {
   res.send('Hello, world');
 });
 
-requestsRouter.get('/api/:endpoint', (req, res) => {
-  // Retrieve request data from mongo
+requestsRouter.get('/bin/1', (req, res) => {
+  //get list of all endpoints in that bin
+})
+
+requestsRouter.get('/bin/1/endpoint/:endpoint', (req, res) => {
+  // Retrieve request data from mongo for ONE endpoint
 });
 
-requestsRouter.post('/api/:endpoint', (req, res) => {
-  // Store incoming request data to Mongo
+requestsRouter.post('/bin/1/endpoint/:endpoint', (req, res) => {
+  // Store incoming request data to Mongo for that endpoint
   console.log(req.body);
 
   res.send('ok');
 });
 
 
-requestsRouter.post('/', (req, res) => {
-  // Store new endpoint in postgres
+requestsRouter.post('/bin/1/endpoint', (req, res) => {
+  // Store new endpoint path in postgres
   res.send('ok');
 });
 
