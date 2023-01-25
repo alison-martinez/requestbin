@@ -2,6 +2,7 @@ const config = require('../utils/config')
 const requestsRouter = require('express').Router()
 const Request = require('../models/request') // model for MongoDB
 const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
 
 // const { Client } = require('pg');
 const pg = require('pg')
@@ -32,7 +33,7 @@ requestsRouter.get('/bin/1', (req, res) => {
       }
       res.status(200).json(JSON.stringify(results.rows));
     })
-  
+
 });
 
 requestsRouter.get('/bin/1/endpoint/:endpoint', (req, res) => {
@@ -48,19 +49,20 @@ requestsRouter.post('/bin/1/endpoint/:endpoint', (req, res) => {
 
 // #fix me
 generateUniquePath = () => {
-  return "uniquePath41"
-}
-
+  return uuidv4();
+};
 
 requestsRouter.post('/bin/1/endpoint', (req, res) => {
   // Store new endpoint path in postgres
   // Store new endpoint in postgres
-  let uniquePath = generateUniquePath()
+  let uniquePath = generateUniquePath();
+  console.log(uniquePath);
   pgClient.connect()
   sql = 'INSERT INTO endpoints (path, binId) VALUES ($1, 1)'
   pgClient.query(sql, [uniquePath], error => {
     if (error) {
       res.status(403).json("Error in creating the endpoint on postgres")
+      console.log(error);
     }  else {
       res.status(200).json(`Unique path: ${uniquePath} added`)
     }
