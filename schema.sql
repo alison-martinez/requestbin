@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS endpoints;
+DROP TABLE IF EXISTS bins;
+
+
 CREATE TABLE bins (
   id serial PRIMARY KEY,
   username text DEFAULT 'admin'
