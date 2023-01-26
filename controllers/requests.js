@@ -8,7 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const pg = require('pg');
 const { response } = require('express');
 const { ClientSession } = require('mongoose/node_modules/mongodb');
-const clients = [];
+let clients = [];
 
 // need connection info for pg (below)
 // const pgClient = new Client({
@@ -28,6 +28,11 @@ requestsRouter.get('/', (req, res) => {
 
 
 const getEndpoints = (req, res) => {
+  const headers = {
+    'Content-Type': 'text/event-stream',
+    'Connection': 'keep-alive',
+    'Cache-Control': 'no-cache'
+  };
   //get list of all endpoints in that bin
     // //list all endpoints from the postgres database
     sql = "SELECT path FROM endpoints WHERE binID = 1"
@@ -35,31 +40,28 @@ const getEndpoints = (req, res) => {
       if (error) {
         res.status(404).json("Error reading endpoints from postgres")
       }
-      const headers = {
-        'Content-Type': 'text/event-stream',
-        'Connection': 'keep-alive',
-        'Cache-Control': 'no-cache'
-      };
+
       res.writeHead(200, headers);
       const data = JSON.stringify(results.rows);
-
+      res.write(JSON.stringify("data"))
       res.write(data);
 
       const clientId = Date.now();
 
       const newClient = {
         id: clientId, 
-        response
+        res
       };
 
       clients.push(newClient);
+      console.log("CLIENTS: ", clients )
 
       req.on('close', () => {
         console.log(`${clientId} Connection closed`);
         clients = clients.filter(client => client.id !== clientId);
       });
       
-      res.status(200).json(JSON.stringify(results.rows));
+      // res.status(200).json(JSON.stringify(results.rows));
     })
 }
 
@@ -112,6 +114,7 @@ const postEndpoint = (req, res) => {
       res.status(403).json("Error in creating the endpoint on postgres")
       console.log(error);
     }  else {
+      console.log(clients);
       clients.forEach(client => client.res.write(uniquePath));
       res.status(200).json(`Unique path: ${uniquePath} added`)
     }
