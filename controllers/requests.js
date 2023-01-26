@@ -69,21 +69,24 @@ const generateUniquePath = () => {
   return uuidv4();
 };
 
+
+
 requestsRouter.post('/bin/1/endpoint', (req, res) => {
   // Store new endpoint path in postgres
   // Store new endpoint in postgres
   let uniquePath = generateUniquePath();
-  console.log(uniquePath);
+  customPath = req.body.endpoint || uniquePath
   pgClient.connect()
   sql = 'INSERT INTO endpoints (path, binId) VALUES ($1, 1)'
-  pgClient.query(sql, [uniquePath], error => {
+  pgClient.query(sql, [customPath], error => {
     if (error) {
       res.status(403).json("Error in creating the endpoint on postgres")
       console.log(error);
     }  else {
-      res.status(200).json(`Unique path: ${uniquePath} added`)
+      res.status(200).json(`Unique path: ${customPath} added`)
     }
   })
+  return customPath
 });
 
 module.exports = requestsRouter
