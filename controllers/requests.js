@@ -43,7 +43,14 @@ requestsRouter.get('/bin/1/endpoint/:endpoint', async (req, res) => {
   // do we need error handling?
 });
 
-requestsRouter.post('/bin/1/endpoint/:endpoint', async (req, res) => {
+requestsRouter.delete('/bin/1/endpoint/:endpoint', (request, response) => {
+  const endpoint = request.params.endpoint;
+  console.log(pgClient.query("SELECT * FROM endpoints WHERE path = $1", [endpoint]));
+  pgClient.query("DELETE FROM endpoints WHERE path = $1", [endpoint]);
+  response.status(201).json();
+});
+
+requestsRouter.post('/bin/1/:endpoint', async (req, res) => {
   // Store incoming request data to Mongo for that endpoint
   const path = req.params.endpoint;
   const header = JSON.stringify(req.headers);
