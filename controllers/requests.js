@@ -7,6 +7,8 @@ const { v4: uuidv4 } = require('uuid');
 // const { Client } = require('pg');
 const pg = require('pg');
 const { response } = require('express');
+const { ClientSession } = require('mongoose/node_modules/mongodb');
+const clients = [];
 
 // need connection info for pg (below)
 // const pgClient = new Client({
@@ -16,7 +18,7 @@ const { response } = require('express');
 //   //password: config.PG_PASSWORD,
 //   database: config.PG_DATABASE,
 // });
-const pgClient = new pg.Pool({database:config.PG_DATABASE})
+const pgClient = new pg.Pool({database:config.PG_DATABASE}) 
 
 requestsRouter.use(bodyParser.json());
 
@@ -24,7 +26,8 @@ requestsRouter.get('/', (req, res) => {
   res.send('Hello, world');
 });
 
-requestsRouter.get('/bin/1', (req, res) => {
+
+const getEndpoints = (req, res) => {
   //get list of all endpoints in that bin
     // //list all endpoints from the postgres database
     sql = "SELECT path FROM endpoints WHERE binID = 1"
@@ -32,9 +35,36 @@ requestsRouter.get('/bin/1', (req, res) => {
       if (error) {
         res.status(404).json("Error reading endpoints from postgres")
       }
+      const headers = {
+        'Content-Type': 'text/event-stream',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'no-cache'
+      };
+      res.writeHead(200, headers);
+      const data = JSON.stringify(results.rows);
+
+      res.write(data);
+
+      const clientId = Date.now();
+
+      const newClient = {
+        id: clientId, 
+        response
+      };
+
+      clients.push(newClient);
+
+      req.on('close', () => {
+        console.log(`${clientId} Connection closed`);
+        clients = clients.filter(client => client.id !== clientId);
+      });
+      
       res.status(200).json(JSON.stringify(results.rows));
     })
-});
+}
+
+
+requestsRouter.get('/bin/1', getEndpoints);
 
 requestsRouter.get('/bin/1/endpoint/:endpoint', async (req, res) => {
   const currentPath = req.params.endpoint;
@@ -69,7 +99,8 @@ const generateUniquePath = () => {
   return uuidv4();
 };
 
-requestsRouter.post('/bin/1/endpoint', (req, res) => {
+
+const postEndpoint = (req, res) => {
   // Store new endpoint path in postgres
   // Store new endpoint in postgres
   let uniquePath = generateUniquePath();
@@ -81,9 +112,12 @@ requestsRouter.post('/bin/1/endpoint', (req, res) => {
       res.status(403).json("Error in creating the endpoint on postgres")
       console.log(error);
     }  else {
+      clients.forEach(client => client.res.write(uniquePath));
       res.status(200).json(`Unique path: ${uniquePath} added`)
     }
   })
-});
+};
+
+requestsRouter.post('/bin/1/endpoint', postEndpoint );
 
 module.exports = requestsRouter
