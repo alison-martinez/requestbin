@@ -5,7 +5,7 @@ CREATE TABLE bins (
 CREATE TABLE endpoints (
   id serial PRIMARY KEY,
   path text UNIQUE NOT NULL,
-  binId int NOT NULL, 
+  binId int NOT NULL,
   FOREIGN KEY (binId) REFERENCES bins(id)
 );
 

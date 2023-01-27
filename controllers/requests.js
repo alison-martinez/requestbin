@@ -24,16 +24,31 @@ requestsRouter.get('/', (req, res) => {
   res.send('Hello, world');
 });
 
-requestsRouter.get('/bin/1', (req, res) => {
+requestsRouter.get('/bin/:binNum', (req, res) => {
   //get list of all endpoints in that bin
-    // //list all endpoints from the postgres database
-    sql = "SELECT path FROM endpoints WHERE binID = 1"
-    pgClient.query(sql, (error,results) => {
-      if (error) {
-        res.status(404).json("Error reading endpoints from postgres")
-      }
-      res.status(200).json(JSON.stringify(results.rows));
-    })
+  // //list all endpoints from the postgres database
+  const binNum = req.params.binNum;
+  console.log("binNum", binNum)
+  sql = "SELECT path FROM endpoints WHERE binID = $1"
+  pgClient.query(sql, [binNum], (error,results) => {
+    if (error) {
+      res.status(404).json("Error reading endpoints from postgres")
+    }
+    res.status(200).json(JSON.stringify(results.rows));
+  })
+});
+
+requestsRouter.get('/bin', (req, res) => {
+  // list all bins from database
+  sql = "SELECT * FROM bins"
+  pgClient.query(sql, (error, results) => {
+    if (error) {
+      console.log("Error", error)
+      res.status(404).json("Error reading bins from postgres.");
+    }
+    console.log(results.rows)
+    res.status(200).json(results.rows);
+  })
 });
 
 requestsRouter.get('/bin/1/endpoint/:endpoint', async (req, res) => {
@@ -69,11 +84,8 @@ const generateUniquePath = () => {
   return uuidv4();
 };
 
-
-
 requestsRouter.post('/bin/1/endpoint', (req, res) => {
   // Store new endpoint path in postgres
-  // Store new endpoint in postgres
   let uniquePath = generateUniquePath();
   customPath = req.body.endpoint || uniquePath
   pgClient.connect()
