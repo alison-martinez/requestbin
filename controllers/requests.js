@@ -34,6 +34,7 @@ requestsRouter.get('/bin/:binNum', (req, res) => {
     if (error) {
       res.status(404).json("Error reading endpoints from postgres")
     }
+    console.log("results", results)
     res.status(200).json(JSON.stringify(results.rows));
   })
 });
