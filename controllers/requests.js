@@ -50,7 +50,7 @@ requestsRouter.delete('/bin/1/endpoint/:endpoint', (request, response) => {
   response.status(201).json();
 });
 
-requestsRouter.post('/bin/1/:endpoint', async (req, res) => {
+requestsRouter.post('/bin/1/endpoint/:endpoint', async (req, res) => {
   // Store incoming request data to Mongo for that endpoint
   const path = req.params.endpoint;
   const header = JSON.stringify(req.headers);
