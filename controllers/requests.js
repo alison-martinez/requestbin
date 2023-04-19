@@ -16,7 +16,7 @@ pgClient.on('error', (err, client) => {
   process.exit(-1);
 });
 
-requestsRouter.get('/', (req, res) => {
+requestsRouter.get('/endpoints', (req, res) => {
   sql = "SELECT path FROM endpoints WHERE binID = 1"
 
   pgClient.connect().then((client) => {
@@ -33,7 +33,7 @@ requestsRouter.get('/', (req, res) => {
   });
 });
 
-requestsRouter.get('/:endpoint', async (req, res) => {
+requestsRouter.get('/endpoints/:endpoint', async (req, res) => {
   const currentPath = req.params.endpoint;
   try {
     const requests = await Request.find({ path: currentPath }).exec();
@@ -44,7 +44,7 @@ requestsRouter.get('/:endpoint', async (req, res) => {
   }
 });
 
-requestsRouter.delete('/:endpoint', (request, response) => {
+requestsRouter.delete('/endpoints/:endpoint', (request, response) => {
   const endpoint = request.params.endpoint;
   sql = "DELETE FROM endpoints WHERE path = $1";
 
@@ -62,7 +62,7 @@ requestsRouter.delete('/:endpoint', (request, response) => {
   });
 });
 
-requestsRouter.post('/create', async (req, res) => {
+requestsRouter.post('/endpoints/create', async (req, res) => {
   const customPath = req.body.endpoint || uuidv4();
 
   const client = await pgClient.connect();
@@ -77,7 +77,7 @@ requestsRouter.post('/create', async (req, res) => {
   }
 });
 
-requestsRouter.post('/:endpoint', async (req, res) => {
+requestsRouter.post('/api/:endpoint', async (req, res) => {
   const path = req.params.endpoint;
   const header = JSON.stringify(req.headers);
   const body = JSON.stringify(req.body);
