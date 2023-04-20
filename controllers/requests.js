@@ -3,120 +3,107 @@ const requestsRouter = require('express').Router()
 const Request = require('../models/request') // model for MongoDB
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
-
-// const { Client } = require('pg');
 const pg = require('pg');
 const { response } = require('express');
 
-// need connection info for pg (below)
-// const pgClient = new Client({
-//   //host: config.PG_HOST,
-//   //port: config.PG_PORT,
-//   //user: config.PG_USER,
-//   //password: config.PG_PASSWORD,
-//   database: config.PG_DATABASE,
-// });
-const pgClient = new pg.Pool({database:config.PG_DATABASE})
+const pgClient = new pg.Pool({ database: config.PG_DATABASE });
 
 requestsRouter.use(bodyParser.json());
 
 pgClient.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err)
-  process.exit(-1)
-})
-
-requestsRouter.get('/', (req, res) => {
-  res.send('Hello, world');
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
 });
 
-requestsRouter.get('/bin/1', (req, res) => {
-  //get list of all endpoints in that bin
-    // //list all endpoints from the postgres database
-    sql = "SELECT path FROM endpoints WHERE binID = 1"
+requestsRouter.get('/endpoints', async (req, res) => {
+  const client = await pgClient.connect();
+  let value;
 
-    pgClient.connect().then((client) => {
-      return client.query(sql, (error, results) => {
-        if (error) {
-          res.status(404).json("Error reading endpoints from postgres")
-          client.release()
-          console.log(error.stack)
-        } else {
-          res.status(200).json(JSON.stringify(results.rows));
-          client.release()
-        }
-      })
-    })
+  try {
+    const results = await client.query("SELECT * FROM endpoints");
+    res.status(200);
+    value = JSON.stringify(results.rows);
+    console.log(value);
+  } catch (error) {
+    res.status(404);
+    value = "Error reading endpoints from postgresl"
+    console.log(error);
+  } finally {
+    res.send(value);
+    client.release();
+  }
 });
 
-requestsRouter.get('/bin/1/endpoint/:endpoint', async (req, res) => {
+requestsRouter.get('/endpoints/:endpoint', async (req, res) => {
   const currentPath = req.params.endpoint;
-  const requests = await Request.find({ path: currentPath }).exec();
-  res.json(requests);
-  // do we need error handling?
+  let value;
+  try {
+    const requests = await Request.find({ path: currentPath }).exec();
+    value = requests;
+  } catch (error) {
+    value = "Error loading request data from MongoDB.";
+    console.log(error);
+  } finally {
+    res.send(value)
+  }
 });
 
-requestsRouter.delete('/bin/1/endpoint/:endpoint', (request, response) => {
-  const endpoint = request.params.endpoint;
-  sql = "DELETE FROM endpoints WHERE path = $1"
-
-  pgClient.connect().then((client) => {
-    return client.query(sql, [endpoint], (error, results) => {
-      if (error) {
-        response.status(404).json("Error reading endpoint from postgres")
-        client.release()
-        console.log(error.stack)
-      } else {
-        response.status(201).json();
-        client.release()
-      }
-    })
-  })
+requestsRouter.delete('/endpoints/:endpoint', async (req, res) => {
+  const endpoint = req.params.endpoint;
+  const client = await pgClient.connect();
+  try {
+    await client.query("DELETE FROM endpoints WHERE path = $1", [endpoint]);
+    res.status(201).json();
+  } catch (error) {
+    res.status(404).json("Error reading endpoint forom Postgres");
+    console.log(error);
+  } finally {
+    res.send();
+    client.release();
+  }
 });
 
-requestsRouter.post('/bin/1/endpoint/:endpoint', async (req, res) => {
-  // Store incoming request data to Mongo for that endpoint
+requestsRouter.post('/endpoints/create', async (req, res) => {
+  const customPath = req.body.endpoint || uuidv4();
+  const client = await pgClient.connect();
+  let value;
+
+  try {
+    await client.query('INSERT INTO endpoints (path) VALUES ($1)', [customPath]);
+    res.status(200);
+    value = customPath;
+  } catch (err) {
+    res.status(403);
+    value = "Error creating the endpoint in Postgres.";
+    console.log(err);
+  } finally {
+    client.release();
+    res.send(value);
+  }
+});
+
+requestsRouter.post('/api/:endpoint', async (req, res) => {
   const path = req.params.endpoint;
   const header = JSON.stringify(req.headers);
   const body = JSON.stringify(req.body);
-
   const request = new Request({
     path: path,
     headers: header,
     body: body,
   });
 
-  const savedRequest = await request.save();
+  let value;
 
-  if (savedRequest) {
-    res.send(savedRequest);
-  } else {
-    console.log("error");
+  try {
+    const savedRequest = await request.save();
+    value = savedRequest;
+    res.status(200);
+  } catch (error) {
+    res.status(403);
+    value = "Error adding data to MongoDB.";
+  } finally {
+    res.send(value);
   }
-  res.status(200).end();
 });
 
-const generateUniquePath = () => {
-  return uuidv4();
-};
-
-
-
-requestsRouter.post('/bin/1/endpoint', async (req, res) => {
-  const uniquePath = generateUniquePath();
-  const customPath = req.body.endpoint || uniquePath
-  console.log(customPath)
-
-  const client = await pgClient.connect()
-  try {
-    const response = await client.query('INSERT INTO endpoints (path, binId) VALUES ($1, 1)', [customPath])
-    res.status(200).json(`Unique path: ${customPath} added`)
-  } catch (err) {
-    res.status(403).json("Error in creating the endpoint on postgres")
-    console.log(err.stack)
-  } finally {
-    client.release()
-  }
-
-})
-
-module.exports = requestsRouter
+module.exports = requestsRouter;
