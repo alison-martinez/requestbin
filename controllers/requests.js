@@ -20,7 +20,7 @@ requestsRouter.get('/endpoints', async (req, res) => {
   let value;
 
   try {
-    const results = await client.query("SELECT * FROM endpoints WHERE binid = 1");
+    const results = await client.query("SELECT * FROM endpoints");
     res.status(200);
     value = JSON.stringify(results.rows);
     console.log(value);
@@ -69,9 +69,9 @@ requestsRouter.post('/endpoints/create', async (req, res) => {
   let value;
 
   try {
-    await client.query('INSERT INTO endpoints (path, binid) VALUES ($1, 1)', [customPath]);
+    await client.query('INSERT INTO endpoints (path) VALUES ($1)', [customPath]);
     res.status(200);
-    value = `Unique path: ${customPath} added.`;
+    value = customPath;
   } catch (err) {
     res.status(403);
     value = "Error creating the endpoint in Postgres.";
