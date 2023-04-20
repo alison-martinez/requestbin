@@ -7,6 +7,8 @@ const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
 
+// app.use(cors);
+
 logger.info('connecting to', config.MONGODB_URI)
 
 console.log("mongodb is", config.MONGODB_URI);
