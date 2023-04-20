@@ -20,7 +20,7 @@ requestsRouter.get('/endpoints', async (req, res) => {
   let value;
 
   try {
-    const results = await client.query("SELECT path FROM endpoints WHERE binid = 1");
+    const results = await client.query("SELECT * FROM endpoints WHERE binid = 1");
     res.status(200);
     value = JSON.stringify(results.rows);
     console.log(value);
