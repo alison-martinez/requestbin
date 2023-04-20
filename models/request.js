@@ -1,6 +1,5 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-// Need to review the schema/types that we are saving to the MongoDB
 const requestSchema = new mongoose.Schema({
   path: {
     type: String,
@@ -13,7 +12,7 @@ const requestSchema = new mongoose.Schema({
   },
   headers: String,
   body: String,
-})
+});
 
 requestSchema.set('toJSON', {
   transform: (document, returnedObject) => {
@@ -21,6 +20,6 @@ requestSchema.set('toJSON', {
     delete returnedObject._id
     delete returnedObject.__v
   }
-})
+});
 
-module.exports = mongoose.model('Request', requestSchema)
+module.exports = mongoose.model('Request', requestSchema);

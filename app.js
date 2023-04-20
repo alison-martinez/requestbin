@@ -1,15 +1,13 @@
-const config = require('./utils/config')
-const express = require('express')
-const app = express()
-const cors = require('cors')
-const requestsRouter = require('./controllers/requests')
-const middleware = require('./utils/middleware')
-const logger = require('./utils/logger')
-const mongoose = require('mongoose')
+const config = require('./utils/config');
+const express = require('express');
+const app = express();
+const cors = require('cors');
+const requestsRouter = require('./controllers/requests');
+const middleware = require('./utils/middleware');
+const logger = require('./utils/logger');
+const mongoose = require('mongoose');
 
-// app.use(cors);
-
-logger.info('connecting to', config.MONGODB_URI)
+logger.info('connecting to', config.MONGODB_URI);
 
 console.log("mongodb is", config.MONGODB_URI);
 mongoose.connect(config.MONGODB_URI)
@@ -18,16 +16,14 @@ mongoose.connect(config.MONGODB_URI)
   })
   .catch((error) => {
     logger.error('error connecting to MongoDB:', error.message)
-  })
+  });
 
-app.use(cors())
-app.use(express.static('build'))
-app.use(express.json())
-app.use(middleware.requestLogger)
+app.use(cors());
+app.use(express.static('build'));
+app.use(express.json());
+app.use(middleware.requestLogger);
+app.use('/', requestsRouter);
+app.use(middleware.unknownEndpoint);
+app.use(middleware.errorHandler);
 
-app.use('/', requestsRouter)
-
-app.use(middleware.unknownEndpoint)
-app.use(middleware.errorHandler)
-
-module.exports = app
+module.exports = app;

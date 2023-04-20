@@ -97,7 +97,6 @@ requestsRouter.post('/api/:endpoint', async (req, res) => {
   try {
     const savedRequest = await request.save();
     value = savedRequest;
-    // res.send(savedRequest);
     res.status(200);
   } catch (error) {
     res.status(403);
